@@ -44,8 +44,8 @@ static bool insideTriangle(int x, int y, const Vector3f* _v)
 {   
 
     for (int i = 0; i < 3; ++ i) {
-        float xx = x - _v[i].x();
-        float yy = y - _v[i].y();
+        float xx = 1.0 * x - _v[i].x();
+        float yy = 1.0 * y - _v[i].y();
         auto vv = _v[(i+1)%3] - _v[i];
 
         float tmp = vv.x() * yy - vv.y() * xx;
@@ -54,7 +54,6 @@ static bool insideTriangle(int x, int y, const Vector3f* _v)
     }
     return true;
     
-    // TODO : Implement this function to check if the point (x, y) is inside the triangle represented by _v[0], _v[1], _v[2]
 }
 
 static std::tuple<float, float, float> computeBarycentric2D(float x, float y, const Vector3f* v)
@@ -194,12 +193,9 @@ int rst::rasterizer::get_index(int x, int y)
 
 void rst::rasterizer::set_pixel(const Eigen::Vector3f& point, const Eigen::Vector3f& color)
 {
-    //old index: auto ind = point.y() + point.x() * width;
     auto ind = (height-1-point.y())*width + point.x();
     
-    // std::cout << depth_buf[ind] << " " << point.z() << std::endl;
     if(depth_buf[ind] > point.z()) {
-        // std::cout << "ok" << std::endl;
         depth_buf[ind] = point.z();
         frame_buf[ind] = color;
     }
