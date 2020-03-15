@@ -50,7 +50,39 @@ Eigen::Matrix4f get_model_matrix(float angle)
 Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float zNear, float zFar)
 {
     // TODO: Use the same projection matrix from the previous assignments
+    Eigen::Matrix4f projection;
+    float f = -zFar;
+    float n = -zNear;
+    float t = std::tan(eye_fov * MY_PI / 180.0 / 2.0) * std::fabs(n);
+    float b = -t;
+    float r = t * aspect_ratio;
+    float l = -r;
 
+    Eigen::Matrix4f translate, scale, ortho, persp, ortho_persp;
+
+    translate << 1, 0, 0, -(r+l)/2.0,
+                 0, 1, 0, -(t+b)/2.0,
+                 0, 0, 1, -(n+f)/2.0,
+                 0, 0, 0, 1;
+
+    scale << 2.0/(r-l), 0, 0, 0,
+             0, 2.0/(t-b), 0, 0,
+             0, 0, 2.0/(n-f), 0,
+             0, 0, 0, 1;
+
+    ortho_persp <<  n, 0, 0, 0,
+                    0, n, 0, 0,
+                    0, 0, n+f, -n*f,
+                    0, 0, 1, 0;
+
+    ortho = scale * translate;
+    persp = ortho * ortho_persp;
+
+    // std::cout << persp << std::endl;
+
+    projection = persp * projection;    
+
+    return projection;
 }
 
 Eigen::Vector3f vertex_shader(const vertex_shader_payload& payload)
@@ -271,7 +303,7 @@ int main(int argc, const char** argv)
     auto texture_path = "hmap.jpg";
     r.set_texture(Texture(obj_path + texture_path));
 
-    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = phong_fragment_shader;
+    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = normal_fragment_shader;
 
     if (argc >= 2)
     {

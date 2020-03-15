@@ -216,7 +216,7 @@ void rst::rasterizer::draw(std::vector<Triangle *> &TriangleList) {
         {
             vert.x() = 0.5*width*(vert.x()+1.0);
             vert.y() = 0.5*height*(vert.y()+1.0);
-            vert.z() = vert.z() * f1 + f2;
+            vert.z() = -vert.z() * f1 + f2;
         }
 
         for (int i = 0; i < 3; ++i)
@@ -257,7 +257,7 @@ static Eigen::Vector2f interpolate(float alpha, float beta, float gamma, const E
 }
 
 //Screen space rasterization
-void rst::rasterizer::rasterize_triangle(const Triangle& t, const std::array<Eigen::Vector3f, 3>& view_pos) 
+void rst::rasterizer::rasterize_triangle(const Triangle& tri, const std::array<Eigen::Vector3f, 3>& view_pos) 
 {
     // TODO: From your HW3, get the triangle rasterization code.
     // TODO: Inside your rasterization loop:
@@ -279,6 +279,45 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t, const std::array<Eig
     // Use: payload.view_pos = interpolated_shadingcoords;
     // Use: Instead of passing the triangle's color directly to the frame buffer, pass the color to the shaders first to get the final color;
     // Use: auto pixel_color = fragment_shader(payload);
+    auto v = tri.toVector4();
+    float l = width, r = 0, d = height, t = 0;
+    for (int i = 0; i < 3; ++ i) {
+        l = std::min(l, v[i][0]);
+        r = std::max(r, v[i][0]);
+        d = std::min(d, v[i][1]);
+        t = std::max(t, v[i][1]);
+    }
+
+    for (int x = l; x < r; ++ x) {
+        for (int y = d; y < t; ++ y) {
+            if(insideTriangle(x, y, tri.v)) {
+                
+                // std::cout << x << " " << y << std::endl;
+
+                auto[alpha, beta, gamma] = computeBarycentric2D(x, y, tri.v);
+                float Z = 1.0 / (alpha / v[0].w() + beta / v[1].w() + gamma / v[2].w());
+                float zp = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
+                zp *= Z;
+                
+                auto ind = (height-y)*width + x;
+                if(depth_buf[ind] > zp) {
+                    depth_buf[ind] = zp;
+
+                    auto interpolated_color = interpolate(alpha, beta, gamma, tri.color[0], tri.color[1], tri.color[2], 1.0);
+                    auto interpolated_normal =interpolate(alpha, beta, gamma, tri.normal[0], tri.normal[1], tri.normal[2], 1.0);
+                    auto interpolated_texcoords = interpolate(alpha, beta, gamma, tri.tex_coords[0], tri.tex_coords[1], tri.tex_coords[2], 1.0);
+                    auto interpolated_shadingcoord = interpolate(alpha, beta, gamma, view_pos[0], view_pos[1], view_pos[2], 1.0);
+
+                    fragment_shader_payload payload( interpolated_color, interpolated_normal.normalized(), interpolated_texcoords, texture ? &*texture : nullptr);
+                    payload.view_pos = interpolated_shadingcoord;
+                    auto pixel_color = fragment_shader(payload);
+
+                    Eigen::Vector2i point = Eigen::Vector2i(x, y);
+                    set_pixel(point, pixel_color);
+                }
+            }
+        }
+    }
 
  
 }
