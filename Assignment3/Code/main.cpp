@@ -51,7 +51,6 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float z
 {
     // TODO: Use the same projection matrix from the previous assignments
 
-
 }
 
 Eigen::Vector3f vertex_shader(const vertex_shader_payload& payload)
@@ -86,7 +85,6 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
     {
         // TODO: Get the texture value at the texture coordinates of the current fragment
 
-
     }
     Eigen::Vector3f texture_color;
     texture_color << return_color.x(), return_color.y(), return_color.z();
@@ -114,7 +112,6 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
     {
         // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
         // components are. Then, accumulate that result on the *result_color* object.
-
 
     }
 
@@ -146,7 +143,6 @@ Eigen::Vector3f phong_fragment_shader(const fragment_shader_payload& payload)
         // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
         // components are. Then, accumulate that result on the *result_color* object.
         
-
     }
 
     return result_color * 255.f;
@@ -184,9 +180,8 @@ Eigen::Vector3f displacement_fragment_shader(const fragment_shader_payload& payl
     // dU = kh * kn * (h(u+1/w,v)-h(u,v))
     // dV = kh * kn * (h(u,v+1/h)-h(u,v))
     // Vector ln = (-dU, -dV, 1)
-    // Position p = p + kh * n * h(u,v)
-    // Normal n = TBN * ln
-
+    // Position p = p + kn * n * h(u,v)
+    // Normal n = normalize(TBN * ln)
 
 
     Eigen::Vector3f result_color = {0, 0, 0};
@@ -234,8 +229,7 @@ Eigen::Vector3f bump_fragment_shader(const fragment_shader_payload& payload)
     // dU = kh * kn * (h(u+1/w,v)-h(u,v))
     // dV = kh * kn * (h(u,v+1/h)-h(u,v))
     // Vector ln = (-dU, -dV, 1)
-    // Normal nd = TBN * ln
-
+    // Normal n = normalize(TBN * ln)
 
 
     Eigen::Vector3f result_color = {0, 0, 0};
