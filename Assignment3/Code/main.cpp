@@ -33,10 +33,10 @@ Eigen::Matrix4f get_model_matrix(float angle)
                 0, 0, 0, 1;
 
     Eigen::Matrix4f scale;
-    scale << 25, 0, 0, 0,
-              0, 25, 0, 0,
-              0, 0, 25, 0,
-              0, 0, 0, 1;
+    scale << 5, 0, 0, 0,
+             0, 5, 0, 0,
+             0, 0, 5, 0,
+             0, 0, 0, 1;
 
     Eigen::Matrix4f translate;
     translate << 1, 0, 0, 0,
@@ -68,7 +68,7 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float z
     scale << 2.0/(r-l), 0, 0, 0,
              0, 2.0/(t-b), 0, 0,
              0, 0, 2.0/(n-f), 0,
-             0, 0, 0, 1.0/2;
+             0, 0, 0, 1;
 
     ortho_persp <<  n, 0, 0, 0,
                     0, n, 0, 0,
@@ -335,17 +335,17 @@ int main(int argc, const char** argv)
 {
     std::vector<Triangle*> TriangleList;
 
-    float angle = 90.0;
+    float angle = 140.0;
     bool command_line = false;
 
     std::string filename = "output.png";
     objl::Loader Loader;
-    // std::string obj_path = "../models/spot/";
-    std::string obj_path = "../models/horse/";
+    std::string obj_path = "../models/spot/";
+    // std::string obj_path = "../models/horse/";
 
     // Load .obj File
-    // bool loadout = Loader.LoadFile("../models/spot/spot_triangulated_good.obj");
-    bool loadout = Loader.LoadFile(obj_path + "horse2.obj");
+    bool loadout = Loader.LoadFile("../models/spot/spot_triangulated_good.obj");
+    // bool loadout = Loader.LoadFile(obj_path + "horse2.obj");
     for(auto mesh:Loader.LoadedMeshes)
     {
         for(int i=0;i<mesh.Vertices.size();i+=3)
