@@ -27,6 +27,11 @@ public:
         auto u_img = u * width;
         auto v_img = (1 - v) * height;
         auto color = image_data.at<cv::Vec3b>(v_img, u_img);
+
+        for(int i = 0; i < 3; ++ i) {
+            if(color[i] < 0.0f) color[i] = 0.0f;
+            if(color[i] > 255.0f) color[i] = 255.0f;
+        }
         return Eigen::Vector3f(color[0], color[1], color[2]);
     }
 

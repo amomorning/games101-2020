@@ -115,6 +115,10 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
     Eigen::Vector3f return_color = {0, 0, 0};
     if (payload.texture)
     {
+        auto tex_coords = payload.tex_coords;
+        
+        auto tex = payload.texture;
+        return_color = tex->getColor(tex_coords.x(), tex_coords.y());
         // TODO: Get the texture value at the texture coordinates of the current fragment
 
     }
@@ -139,12 +143,23 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
     Eigen::Vector3f normal = payload.normal;
 
     Eigen::Vector3f result_color = {0, 0, 0};
+    Eigen::Vector3f ambient = amb_light_intensity.asDiagonal() * ka;
+    result_color += ambient;
 
     for (auto& light : lights)
     {
-        // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
-        // components are. Then, accumulate that result on the *result_color* object.
+        auto l = (light.position - point).normalized();
+        auto v = (eye_pos - point).normalized();
+        auto h = (v+l).normalized();
+        auto lr = light.intensity / (light.position - point).squaredNorm();
 
+
+        Eigen::Vector3f diffuse =  lr.asDiagonal() * kd
+                                    * std::max(0.0f, normal.dot(l));
+        Eigen::Vector3f specular = lr.asDiagonal() * ks
+                                    * pow(std::max(0.0f, normal.dot(h)), p);
+        
+        result_color += diffuse + specular;
     }
 
     return result_color * 255.f;
@@ -311,10 +326,10 @@ int main(int argc, const char** argv)
 
     rst::rasterizer r(700, 700);
 
-    auto texture_path = "hmap.jpg";
+    auto texture_path = "spot_texture.png";
     r.set_texture(Texture(obj_path + texture_path));
 
-    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = phong_fragment_shader;
+    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = texture_fragment_shader;
 
     if (argc >= 2)
     {
@@ -341,6 +356,7 @@ int main(int argc, const char** argv)
         else if (argc == 3 && std::string(argv[2]) == "bump")
         {
             std::cout << "Rasterizing using the bump shader\n";
+            texture_path = "hmap.jpg";
             active_shader = bump_fragment_shader;
         }
         else if (argc == 3 && std::string(argv[2]) == "displacement")
