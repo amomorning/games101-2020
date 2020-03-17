@@ -63,7 +63,7 @@ Eigen::Matrix4f get_model_matrix(Eigen::Vector3f rotation_axies,
 Eigen::Matrix4f get_model_matrix(float rotation_angle)
 {
     Eigen::Matrix4f model = Eigen::Matrix4f::Identity();
-.
+
     float a = rotation_angle * MY_PI / 180.0;
     Eigen::Matrix4f rotation;
     rotation << std::cos(a), -std::sin(a), 0, 0, 
