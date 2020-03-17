@@ -5,8 +5,11 @@
 int main() { 
     Eigen::Vector3f a = Eigen::Vector3f(2.0f, 2.0f, 0.0f);
     Eigen::Vector3f c = Eigen::Vector3f(2.0f, 0.0f, 0.0f);
+    Eigen::Vector3f b = Eigen::Vector3f(3.0f, 2.0f, 1.0f);
     
-    std::cout << a.norm() << std::endl;
+    Eigen::Matrix3f m;
+    m << a, b, c;
+    std::cout << m << std::endl;
     
     return 0;
 }
