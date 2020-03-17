@@ -174,18 +174,16 @@ Eigen::Vector3f phong_fragment_shader(const fragment_shader_payload& payload)
     result_color += ambient;
     for (auto& light : lights)
     {
-        auto l = light.position - point;
-        auto v = eye_pos - point;
+        auto l = (light.position - point).normalized();
+        auto v = (eye_pos - point).normalized();
         auto h = (v+l).normalized();
-        float r_square = pow(l.norm(), 2.0);
+        auto lr = light.intensity / (light.position - point).squaredNorm();
 
-        float alpha = normal.transpose() * h;
-        auto lr = light.intensity / r_square;
 
         Eigen::Vector3f diffuse =  lr.asDiagonal() * kd
-                                    * std::max(0.0f, alpha);
+                                    * std::max(0.0f, normal.dot(l));
         Eigen::Vector3f specular = lr.asDiagonal() * ks
-                                    * pow(std::max(0.0f, alpha), p);
+                                    * pow(std::max(0.0f, normal.dot(h)), p);
         
         result_color += diffuse + specular;
     }
