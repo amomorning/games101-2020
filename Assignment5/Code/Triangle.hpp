@@ -15,10 +15,10 @@ bool rayTriangleIntersect(const Vector3f& v0, const Vector3f& v1, const Vector3f
     auto s1 = crossProduct(dir, e2);
     auto s2 = crossProduct(s, e1);
 
-    float temp = 1 / dotProduct(s1,e1);
-    float t = dotProduct(s2,e2) *  temp;
-    float b1 = dotProduct(s1,s) * temp;
-    float b2 = dotProduct(s2,dir) * temp;
+    float tmp = dotProduct(s1,e1);
+    float t = dotProduct(s2,e2) / tmp;
+    float b1 = dotProduct(s1,s) / tmp;
+    float b2 = dotProduct(s2,dir) / tmp;
 
     if (t > 0 && b1 > 0 && b2 > 0 && 1-b1-b2 > 0)
     {
