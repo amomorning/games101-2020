@@ -27,8 +27,9 @@ public:
     { return Vector3f(v.x * r, v.y * r, v.z * r); }
     friend std::ostream & operator << (std::ostream &os, const Vector3f &v)
     { return os << v.x << ", " << v.y << ", " << v.z; }
-    double       operator[](int index) const;
-    double&      operator[](int index);
+    double       operator[](int index) const ;
+    // double&      operator[](int index); 
+
 
 
     static Vector3f Min(const Vector3f &p1, const Vector3f &p2) {
