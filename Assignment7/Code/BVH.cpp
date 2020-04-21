@@ -129,6 +129,7 @@ Intersection BVHAccel::getIntersection(BVHBuildNode* node, const Ray& ray) const
     }
 
     return inter;
+
 }
 
 

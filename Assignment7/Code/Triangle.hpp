@@ -260,9 +260,11 @@ inline Intersection Triangle::getIntersection(Ray ray)
         inter.distance = t_tmp;
         inter.obj = this;
         inter.m = m;
-    }
+        inter.emit = m->m_emission;
+    } else inter.happened = false;
 
     return inter;
+
 }
 
 inline Vector3f Triangle::evalDiffuseColor(const Vector2f&) const

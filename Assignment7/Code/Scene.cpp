@@ -60,5 +60,40 @@ bool Scene::trace(
 // Implementation of Path Tracing
 Vector3f Scene::castRay(const Ray &ray, int depth) const
 {
-    // TO DO Implement Path Tracing Algorithm here
+    auto p = this->intersect(ray);
+
+    if(p.happened == false) return Vector3f(0);
+
+    if(p.emit.norm() > 0) return Vector3f(1);
+
+    auto wo = - ray.direction;  
+    auto N = p.normal;
+
+    Intersection inter_light;
+    float pdf_light;
+    sampleLight(inter_light, pdf_light);
+
+    auto x = inter_light.coords;  
+    auto ws_unorm = x - p.coords; 
+    auto ws = normalize(ws_unorm);  
+    auto NN = normalize(inter_light.normal); 
+
+    Vector3f L_dir(0);
+    float dist_dir = (intersect(Ray(p.coords, ws)).coords - inter_light.coords).norm();
+    if ( dist_dir < 1e-4 )
+    {
+        L_dir = inter_light.emit * p.m->eval(ws, wo, N) * dotProduct(ws, N) * dotProduct(-ws, NN) / dotProduct(ws_unorm, ws_unorm) / pdf_light;
+    }
+
+    Vector3f L_indir(0);
+    float num = get_random_float();
+    if (num < RussianRoulette)
+    {
+        auto wi = p.m->sample(wo, N); 
+        L_indir = castRay(Ray(p.coords, wi), depth) * p.m->eval(wi, wo, N) * dotProduct(wi, N) / p.m->pdf(wi, wo, N) / RussianRoulette;
+    }
+    L_indir = L_indir * 1.0/RussianRoulette;
+
+    return L_dir + L_indir;
+
 }

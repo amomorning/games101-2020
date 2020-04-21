@@ -114,8 +114,38 @@ inline bool Bounds3::IntersectP(const Ray& ray, const Vector3f& invDir,
     double tEnter = std::max({tMin[0], tMin[1], tMin[2]});
     double tExit = std::min({tMax[0], tMax[1], tMax[2]});
 
-    if(tEnter < tExit && tEnter > 0) return true;
+    if(tEnter < tExit+1e-4 && tExit > 0) return true;
     return false;
+    // // copied from hw6: Bounds3.hpp
+    // // t_min & t_max along x/y/z-axis
+    // auto t_pmax = (pMax - ray.origin) * invDir;
+    // auto t_pmin = (pMin - ray.origin) * invDir;
+
+    // // shuffle min & max
+    // Vector3f t_min(
+    //     std::min(t_pmin.x, t_pmax.x),
+    //     std::min(t_pmin.y, t_pmax.y),
+    //     std::min(t_pmin.z, t_pmax.z)
+    //     );
+    // Vector3f t_max(
+    //     std::max(t_pmin.x, t_pmax.x),
+    //     std::max(t_pmin.y, t_pmax.y),
+    //     std::max(t_pmin.z, t_pmax.z)
+    //     );
+
+    // auto t_enter = std::max({t_min.x, t_min.y, t_min.z});
+    // auto t_exit  = std::min({t_max.x, t_max.y, t_max.z});
+    // bool inter = (t_exit>=t_enter) && (t_exit>0);
+
+    // // std::clog << "pMin: " << pMin << " " << "pMax: " << pMax << std::endl;
+    // // std::clog << "ray: " << ray;
+    // // std::clog << "invDir: " << invDir << std::endl;
+    // // std::clog << "t_min: " << t_min << " " << "t_max: " << t_max << std::endl << std::endl;
+    // // std::clog << "t_enter: " << t_enter << " " << "t_exit: " << t_exit << std::endl << std::endl;
+    // // std::clog << "inter" << inter << std::endl;
+
+
+    // return inter; 
 
 }
 
