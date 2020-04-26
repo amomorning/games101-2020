@@ -35,15 +35,27 @@ namespace CGL {
         for (auto &s : springs)
         {
             // TODO (Part 2): Use Hooke's law to calculate the force on a node
+            auto m1 = s->m1;
+            auto m2 = s->m2;
+
+            double l = (m1->start_position - m2->start_position).norm();
+            double d = (m1->position - m2->position).norm();
+
+            m1->forces += -(s->k) * (m1->position - m2->position) * (d-l)/d;
+            m2->forces += -(s->k) * (m2->position - m1->position) * (d-l)/d;
         }
 
         for (auto &m : masses)
         {
             if (!m->pinned)
             {
-                // TODO (Part 2): Add the force due to gravity, then compute the new velocity and position
+                auto a = (m->forces + gravity) / m->mass;
+                auto cur_position = m->position;
+                auto cur_velocity = m->velocity;
 
-                // TODO (Part 2): Add global damping
+                m->velocity = cur_velocity + a * delta_t;
+                m->position = cur_position + m->velocity * delta_t;
+
             }
 
             // Reset all forces on each mass
@@ -55,18 +67,29 @@ namespace CGL {
     {
         for (auto &s : springs)
         {
-            // TODO (Part 3): Simulate one timestep of the rope using explicit Verlet （solving constraints)
+            auto m1 = s->m1;
+            auto m2 = s->m2;
+
+            double l = (m1->start_position - m2->start_position).norm();
+            double d = (m1->position - m2->position).norm();
+
+            m1->forces += -(s->k) * (m1->position - m2->position) * (d-l)/d;
+            m2->forces += -(s->k) * (m2->position - m1->position) * (d-l)/d;
         }
 
         for (auto &m : masses)
         {
             if (!m->pinned)
             {
-                Vector2D temp_position = m->position;
-                // TODO (Part 3.1): Set the new position of the rope mass
-                
-                // TODO (Part 4): Add global Verlet damping
+                auto a = (m->forces + gravity) / m->mass;
+                auto cur_position = m->position;              
+
+                double damping_factor = 0.00005;
+                m->position = cur_position + (1-damping_factor) * (cur_position - m->last_position) + a * delta_t * delta_t;
+                m->last_position = cur_position;
             }
+            m->forces = Vector2D(0, 0);
         }
+        
     }
 }
