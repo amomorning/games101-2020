@@ -194,28 +194,16 @@ int _glfwInitJoysticks(void)
     DIR* dir;
 
     _glfw.linux_js.inotify = inotify_init1(IN_NONBLOCK | IN_CLOEXEC);
-    if (_glfw.linux_js.inotify == -1)
+    if (_glfw.linux_js.inotify > 0)
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
-                        "Linux: Failed to initialize inotify: %s",
-                        strerror(errno));
-        return GL_FALSE;
+
+        _glfw.linux_js.watch = inotify_add_watch(_glfw.linux_js.inotify,
+                                             dirname,
+                                             IN_CREATE | IN_ATTRIB);
     }
 
     // HACK: Register for IN_ATTRIB as well to get notified when udev is done
     //       This works well in practice but the true way is libudev
-
-    _glfw.linux_js.watch = inotify_add_watch(_glfw.linux_js.inotify,
-                                             dirname,
-                                             IN_CREATE | IN_ATTRIB);
-    if (_glfw.linux_js.watch == -1)
-    {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
-                        "Linux: Failed to watch for joystick connections in %s: %s",
-                        dirname,
-                        strerror(errno));
-        // Continue without device connection notifications
-    }
 
     if (regcomp(&_glfw.linux_js.regex, "^js[0-9]\\+$", 0) != 0)
     {
@@ -242,15 +230,7 @@ int _glfwInitJoysticks(void)
 
         closedir(dir);
     }
-    else
-    {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
-                        "Linux: Failed to open joystick device directory %s: %s",
-                        dirname,
-                        strerror(errno));
-        // Continue with no joysticks detected
-    }
-
+    
 #endif // __linux__
 
     return GL_TRUE;
