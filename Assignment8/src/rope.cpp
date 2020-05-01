@@ -11,7 +11,7 @@ namespace CGL {
 
     Rope::Rope(Vector2D start, Vector2D end, int num_nodes, float node_mass, float k, vector<int> pinned_nodes)
     {
-        // TODO (Part 1): Create a rope starting at `start`, ending at `end`, and containing `num_nodes` nodes.
+        // Create a rope starting at `start`, ending at `end`, and containing `num_nodes` nodes.
         
         double dx = (end.x - start.x) / (num_nodes - 1);
         double dy = (end.y - start.y) / (num_nodes - 1);
@@ -19,22 +19,20 @@ namespace CGL {
         for(int i = 0; i < num_nodes; ++i) {
             auto pos = Vector2D(start.x + dx * i, start.y + dy * i);
             masses.push_back(new Mass(pos, node_mass, false));
+            if(i) springs.push_back(new Spring(masses[i-1], masses[i], k));
         }
 
         for (auto &i : pinned_nodes) {
             masses[i]->pinned = true;
         }
 
-        for(int i = 1; i < num_nodes; ++i) {
-            springs.push_back(new Spring(masses[i-1], masses[i], k));
-        }
     }
 
     void Rope::simulateEuler(float delta_t, Vector2D gravity)
     {
         for (auto &s : springs)
         {
-            // TODO (Part 2): Use Hooke's law to calculate the force on a node
+            // Use Hooke's law to calculate the force on a node
             auto m1 = s->m1;
             auto m2 = s->m2;
 
@@ -52,9 +50,13 @@ namespace CGL {
                 auto a = (m->forces + gravity) / m->mass;
                 auto cur_position = m->position;
                 auto cur_velocity = m->velocity;
+                double damping_factor = 0.00005;
+                std::cout << cur_velocity << std::endl;
 
+                // m->position = cur_position + cur_velocity * delta_t; // explicit method
                 m->velocity = cur_velocity + a * delta_t;
-                m->position = cur_position + m->velocity * delta_t;
+                m->velocity = (1 - damping_factor)*m->velocity;
+                m->position = cur_position + m->velocity * delta_t; //semi-implicit method
 
             }
 
