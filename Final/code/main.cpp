@@ -1,15 +1,18 @@
 #include <math.h>
 #include <iostream>
 #include <eigen3/Eigen/Eigen>
+#include "mesh_io.h"
+
 
 int main() { 
-    Eigen::Vector3f a = Eigen::Vector3f(2.0f, 2.0f, 0.0f);
-    Eigen::Vector3f c = Eigen::Vector3f(2.0f, 0.0f, 0.0f);
-    Eigen::Vector3f b = Eigen::Vector3f(3.0f, 2.0f, 1.0f);
-    
-    Eigen::Matrix3f m;
-    m << a, b, c;
-    std::cout << m << std::endl;
+    const char * filename = "../../models/bunny.obj";
+    Eigen::Matrix3Xd V;
+	Eigen::Matrix3Xi F;
+    common::read_obj(filename, V, F);
+
+    std::cout << V.rows() << " " << V.cols() << std::endl;
+    std::cout << F.rows() << " " << F.cols() << std::endl;
+
     
     return 0;
 }
