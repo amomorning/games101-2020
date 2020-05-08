@@ -1,12 +1,15 @@
 #include <math.h>
 #include <iostream>
+#include <vector>
 #include <eigen3/Eigen/Dense>
 #include "mesh_io.h"
 #include "binary_io.h"
 
-const double ro = 0.01;
+const double ro = 0.005;
+std::vector<int> bucket[20][20][20];
 
-void calculateNormals(const Eigen::MatrixXd &V, 
+
+void calculate_normals(const Eigen::MatrixXd &V, 
                       const Eigen::Matrix3Xi &F, 
                       Eigen::MatrixXd &N) {
     N.resize(V.rows(), V.cols()); 
@@ -33,7 +36,7 @@ void calculateNormals(const Eigen::MatrixXd &V,
 
 }
 
-void movePositives(Eigen::MatrixXd &V) { 
+void move_positives(Eigen::MatrixXd &V) { 
     double mpt[3];
     mpt[0] = mpt[1] = mpt[2] = 1e15;
     for(int i = 0; i < V.cols(); ++ i) {
@@ -50,6 +53,51 @@ void movePositives(Eigen::MatrixXd &V) {
     return;
 }
 
+Eigen::Vector3i get_position(const Eigen::Vector3d pt) {
+    double sigma = ro * 2; 
+    int x = pt[0]/sigma + 1;
+    int y = pt[1]/sigma + 1;
+    int z = pt[2]/sigma + 1;
+    return Eigen::Vector3i(x, y, z);
+}
+
+void bucketsort(const Eigen::MatrixXd &V) {
+    // bunny with 15x15x15 with max grid 14 points (2, 0, 6);
+    Eigen::Vector3i mpt;
+    for (int i = 0; i < V.cols(); ++ i) {
+        auto ps = get_position(V.col(i));
+        bucket[ps[0]][ps[1]][ps[2]].push_back(i); 
+    }
+}
+
+std::vector<int> pick_neighbors(const Eigen::Vector3d &pt) {
+    auto ps = get_position(pt);
+    std::vector<int> ret;
+    for(int i = -1; i < 1; ++ i) {
+        for(int j = -1; j < 1; ++ j) {
+            for(int k = -1; k < 1; ++ k) {
+                for(auto e:bucket[i][j][k]) {
+                    ret.push_back(e);
+                }
+            }
+        }
+    }
+    return ret;
+}
+
+void find_seed_triangle(const Eigen::MatrixXd &V, int vid) {
+    auto a = V.col(vid);
+    auto pt_list = pick_neighbors(a);
+    for(int i = 0; i < pt_list.size(); ++ i) {
+        auto b = V.col(pt_list[i]);
+        for(int j = 0; j < pt_list.size(); ++ j) {
+            auto c = V.col(pt_list[j]);
+            
+            
+        }
+    }
+}
+
 int main(int argc, const char** argv) { 
 
     Eigen::MatrixXd V, N;
@@ -64,14 +112,15 @@ int main(int argc, const char** argv) {
         std::cout << "F: " << F.rows() << " " << F.cols() << std::endl;
 
         // calculate normals;
-        calculateNormals(VV, F, N);
+        calculate_normals(VV, F, N);
         V = VV;
     } else {
         common::read_matrix_binary_from_file("../data/V", V);
         common::read_matrix_binary_from_file("../data/N", N);
     }
 
-    movePositives(V);
+    move_positives(V);
+    bucketsort(V);
 
     // common::save_obj("./bunny.obj", V, F);
     
