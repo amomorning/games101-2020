@@ -2,6 +2,9 @@
 #include <fstream>
 #include <vector>
 namespace common {
+
+
+
 int read_obj(const std::string &filename,
             Eigen::Matrix3Xd &V, Eigen::Matrix3Xi &F)
 {

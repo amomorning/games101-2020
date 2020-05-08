@@ -4,12 +4,11 @@
 #include "mesh_io.h"
 #include "binary_io.h"
 
-const int vN = 34817;
-const int vF = 69630;
+const double ro = 0.01;
 
-
-void calculateNormals(const Eigen::MatrixXd &V, const Eigen::Matrix3Xi &F) {
-    Eigen::MatrixXd N;
+void calculateNormals(const Eigen::MatrixXd &V, 
+                      const Eigen::Matrix3Xi &F, 
+                      Eigen::MatrixXd &N) {
     N.resize(V.rows(), V.cols()); 
 
     for (int i = 0; i < F.cols(); ++ i) {
@@ -32,22 +31,49 @@ void calculateNormals(const Eigen::MatrixXd &V, const Eigen::Matrix3Xi &F) {
         N.col(i).normalize();
     }
 
-    // check point 1603
-    std::cout << "v 1603 = " << N.col(1603) << std::endl;
-    common::write_matrix_binary_to_file("../data/V", V);
-    common::write_matrix_binary_to_file("../data/N", N);
 }
 
-int main() { 
-    const char * filename = "../../models/bunny.obj";
-    Eigen::Matrix3Xd V;
-	Eigen::Matrix3Xi F;
-    common::read_obj(filename, V, F);
+void movePositives(Eigen::MatrixXd &V) { 
+    double mpt[3];
+    mpt[0] = mpt[1] = mpt[2] = 1e15;
+    for(int i = 0; i < V.cols(); ++ i) {
+        auto pt = V.col(i);
+        for(int j = 0; j < 3; ++ j)
+            mpt[j] = std::min(mpt[j], pt[j]);
+    }
 
-    std::cout << V.rows() << " " << V.cols() << std::endl;
-    // std::cout << F.rows() << " " << F.cols() << std::endl;
+    for(int i = 0; i < V.cols(); ++ i) {
+        auto pt = V.col(i);
+        for(int j = 0; j < 3; ++ j)
+            pt[j] -= mpt[j];
+    }
+    return;
+}
 
-    calculateNormals(V, F);
+int main(int argc, const char** argv) { 
+
+    Eigen::MatrixXd V, N;
+    Eigen::Matrix3Xi F;
+
+    if (argc == 2) {
+        const char * filename = argv[1];
+        Eigen::Matrix3Xd VV;
+        common::read_obj(filename, VV, F);
+        std::cout << "Read " << filename << " successfully :" << std::endl; 
+        std::cout << "V: " << VV.rows() << " " << VV.cols() << std::endl;
+        std::cout << "F: " << F.rows() << " " << F.cols() << std::endl;
+
+        // calculate normals;
+        calculateNormals(VV, F, N);
+        V = VV;
+    } else {
+        common::read_matrix_binary_from_file("../data/V", V);
+        common::read_matrix_binary_from_file("../data/N", N);
+    }
+
+    movePositives(V);
+
+    // common::save_obj("./bunny.obj", V, F);
     
     return 0;
 }
