@@ -4,7 +4,7 @@
 
 
 Pivoter::Pivoter() {
-    memset(notUsed, 0, sizeof(notUsed));
+    memset(used, 0, sizeof(used));
 }
 
 Eigen::Vector3i Pivoter::get_position(const Eigen::Vector3d pt) {
@@ -26,7 +26,7 @@ std::vector<int> Pivoter::pick_neighbors(const Eigen::Vector3d &pt) {
                 int dy = (j == 2)?-1:j;
                 int dz = (k == 2)?-1:k;
                 for(auto e:bucket[ps[0] + dx][ps[1] + dy][ps[2] + dz]) {
-                    ret.push_back(e);
+                    if(!used[e]) ret.push_back(e);
                 }
             }
         }
@@ -34,16 +34,18 @@ std::vector<int> Pivoter::pick_neighbors(const Eigen::Vector3d &pt) {
     return ret;
 }
 
-void Pivoter::find_seed_triangle(const Eigen::MatrixXd &V, const Eigen::MatrixXd &N, int seed) {
+Triangle Pivoter::find_seed_triangle(const Eigen::MatrixXd &V, const Eigen::MatrixXd &N, int seed) {
 
     srand(seed);
     int vid = rand()%1000 + 1000;
     std::cout << vid << std::endl;
+    used[vid] = true;
 
     auto v = V.col(vid);
     auto vn = N.col(vid);
 
     auto pt_list = pick_neighbors(v);
+    bool find = false;
     for(int i = 0; i < pt_list.size(); ++ i) {
         Eigen::Vector3d a = V.col(pt_list[i]) - v;
         for(int j = 0; j < pt_list.size(); ++ j) {
@@ -58,12 +60,47 @@ void Pivoter::find_seed_triangle(const Eigen::MatrixXd &V, const Eigen::MatrixXd
             if(circle.second > ro) continue;
 
             auto ball_center = get_ball_center(circle, normal);
+            used[pt_list[i]] = true;
+            used[pt_list[j]] = true;
+
+            if(check_ball(V, ball_center, pt_list)) {
+                used[pt_list[i]] = false;
+                used[pt_list[j]] = false;
+                continue;
+            }
+
+
+            Edge e0 = {vid, pt_list[i], true};
+            front.push(e0);
+
+            Edge e1 = {pt_list[i], pt_list[j], true};
+            front.push(e1);
+
+            Edge e2 = {pt_list[j], vid, true};
+            front.push(e2);
             std::cout << pt_list[i] << " " << pt_list[j] << std::endl;
 
             std::cout << ball_center << std::endl;
-            break;
+
+            return Triangle({vid, pt_list[i], pt_list[j], ball_center});
+
         }
     }
+}
+
+bool Pivoter::check_ball(const Eigen::MatrixXd &V, 
+            const Eigen::Vector3d &ball_center, 
+            const std::vector<int> &pt_list)
+{
+    for (auto e:pt_list) {
+        if(used[e]) continue;
+        
+        double dist = (ball_center - V.col(e)).norm();
+        if(dist < ro - 1e-7) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void Pivoter::bucketsort(const Eigen::MatrixXd &V) {
