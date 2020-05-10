@@ -6,6 +6,7 @@
 struct Edge {
     // u -> v
     int u, v;
+    int opposite;
     // bool active;
     Eigen::Vector3d ball_center;
     bool operator==(const Edge &other) const {
@@ -16,7 +17,7 @@ struct Edge {
 class Pivoter
 {
 public:
-    const double ro = 0.005;
+    const double ro = 0.007;
     std::vector<int> bucket[20][20][20];
     std::list<Edge> front;
     int used[4000];
@@ -24,6 +25,7 @@ public:
     Pivoter();
     ~Pivoter(){};
 
+    bool check_front(int x);
     void bucketsort(const Eigen::MatrixXd &V);
     bool find_seed_triangle(std::vector<Eigen::Vector3i> &tris, const Eigen::MatrixXd &V, const Eigen::MatrixXd &N, int seed);    
     void find_next_triangle(std::vector<Eigen::Vector3i> &tris, const Eigen::MatrixXd &V, const Eigen::MatrixXd &N);
@@ -35,6 +37,8 @@ public:
     bool check_ball(const Eigen::MatrixXd &V, 
             const Eigen::Vector3d &ball_center, 
             const std::vector<int> &pt_list);
+
+    bool delete_edge_from_front(int u, int v);
 
     
 };

@@ -86,20 +86,29 @@ int main(int argc, const char** argv) {
     Pivoter pvt;
     pvt.bucketsort(V);
 
+    int seed = 233;
+    srand(seed);
+    int cnt = 0;
     while(true) {
-        if(!pvt.find_seed_triangle(tris, V, N, 233)) break;
+        puts("ok");
+        int randseed = rand()%10000;
+        if(!pvt.find_seed_triangle(tris, V, N, randseed)) break;
 
         while(pvt.front.size() > 0) { 
             pvt.find_next_triangle(tris, V, N);
         }
-        break;
+
+        std::cout << "Part " << cnt ++ << std::endl;
+        std::cout << tris.size() << std::endl;
+        // break;
+        if(cnt > 9) break;
     }
     Eigen::Matrix3Xi F;
     F.resize(3, tris.size());
     int i = 0;
-    std::cout << tris.size() << std::endl;
+    // std::cout << tris.size() << std::endl;
     for(auto tri:tris) {
-        std::cout << tri[0] << " " << tri[1] << " " << tri[2] << std::endl;
+        // std::cout << tri[0] << " " << tri[1] << " " << tri[2] << std::endl;
         F.col(i++) = tri;
     }
 
