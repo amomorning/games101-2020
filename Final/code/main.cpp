@@ -6,6 +6,8 @@
 #include "binary_io.h"
 #include "Pivoter.h"
 
+int used[4000];
+std::vector<Eigen::Vector3i> tris;
 
 
 void calculate_normals(const Eigen::MatrixXd &V, 
@@ -58,6 +60,7 @@ int main(int argc, const char** argv) {
 
     
     Eigen::MatrixXd V, N;
+    
 
     if (argc == 2) {
         const char * filename = argv[1];
@@ -80,11 +83,27 @@ int main(int argc, const char** argv) {
     move_positives(V);
 
 
-
     Pivoter pvt;
     pvt.bucketsort(V);
-    pvt.find_seed_triangle(V, N, 233);
 
+    while(true) {
+        if(!pvt.find_seed_triangle(tris, V, N, 233)) break;
+
+        while(pvt.front.size() > 0) { 
+            pvt.find_next_triangle(tris, V, N);
+        }
+        break;
+    }
+    Eigen::Matrix3Xi F;
+    F.resize(3, tris.size());
+    int i = 0;
+    std::cout << tris.size() << std::endl;
+    for(auto tri:tris) {
+        std::cout << tri[0] << " " << tri[1] << " " << tri[2] << std::endl;
+        F.col(i++) = tri;
+    }
+
+    common::save_obj("result.obj", V, F);
     
     return 0;
 }

@@ -34,7 +34,70 @@ std::vector<int> Pivoter::pick_neighbors(const Eigen::Vector3d &pt) {
     return ret;
 }
 
-Triangle Pivoter::find_seed_triangle(const Eigen::MatrixXd &V, const Eigen::MatrixXd &N, int seed) {
+void Pivoter::find_next_triangle(std::vector<Eigen::Vector3i> &tris, const Eigen::MatrixXd &V, const Eigen::MatrixXd &N)
+{
+    Edge e = front.front();
+    front.pop_front();
+
+    auto v = V.col(e.u);
+    auto vn = N.col(e.u);
+    auto obc = e.ball_center;
+
+    auto m = (V.col(e.u) + V.col(e.v))/2;
+
+    auto pt_list = pick_neighbors(v);
+    Eigen::Vector3d b = V.col(e.v) - v;
+    double max_angle = 0;
+    int vid = -1;
+    Eigen::Vector3d nbc;
+    for(int i = 0; i < pt_list.size(); ++ i) {
+        Eigen::Vector3d a = V.col(pt_list[i]) - v;
+
+        auto normal = a.cross(b);
+        normal.normalize();
+        
+        // check normal
+        double theta = acos(vn.dot(normal));
+        if(theta > 0.5) continue;
+        
+        // get new triangle circle
+        auto circle = get_circle(v, a+v, b+v);
+        if(circle.second > ro) continue;
+        
+        // check if other point in ball
+        auto ball_center = get_ball_center(circle, normal);
+        used[pt_list[i]] = true;
+
+        if(check_ball(V, ball_center, pt_list)) {
+            used[pt_list[i]] = false;
+            continue;
+        }
+
+        // calculate angle 
+        Eigen::Vector3d c0 = obc - m;
+        c0.normalize();
+        Eigen::Vector3d c1 = ball_center - m;
+        c1.normalize();
+
+        double angle = acos(c0.dot(c1));
+        if(angle > max_angle) { 
+            max_angle = angle;
+            vid = pt_list[i];
+            nbc = ball_center;
+        }
+    }
+    if(~vid) {
+        std::cout << max_angle << " " << vid << std::endl;
+        std::cout << "find triangle: " << e.u << " " << vid << " " << e.v << std::endl;
+        tris.push_back({e.u, vid, e.v});
+        
+        front.push_back({e.u, vid, nbc});
+        front.push_back({vid, e.v, nbc});
+    }
+
+}
+
+bool Pivoter::find_seed_triangle(std::vector<Eigen::Vector3i> &tris, const Eigen::MatrixXd &V, const Eigen::MatrixXd &N, int seed) {
 
     srand(seed);
     int vid = rand()%1000 + 1000;
@@ -45,7 +108,6 @@ Triangle Pivoter::find_seed_triangle(const Eigen::MatrixXd &V, const Eigen::Matr
     auto vn = N.col(vid);
 
     auto pt_list = pick_neighbors(v);
-    bool find = false;
     for(int i = 0; i < pt_list.size(); ++ i) {
         Eigen::Vector3d a = V.col(pt_list[i]) - v;
         for(int j = 0; j < pt_list.size(); ++ j) {
@@ -70,22 +132,25 @@ Triangle Pivoter::find_seed_triangle(const Eigen::MatrixXd &V, const Eigen::Matr
             }
 
 
-            Edge e0 = {vid, pt_list[i], true};
-            front.push(e0);
+            Edge e0 = {vid, pt_list[i], ball_center};
+            front.push_back(e0);
 
-            Edge e1 = {pt_list[i], pt_list[j], true};
-            front.push(e1);
+            Edge e1 = {pt_list[i], pt_list[j], ball_center};
+            front.push_back(e1);
 
-            Edge e2 = {pt_list[j], vid, true};
-            front.push(e2);
+            Edge e2 = {pt_list[j], vid, ball_center};
+            front.push_back(e2);
             std::cout << pt_list[i] << " " << pt_list[j] << std::endl;
 
             std::cout << ball_center << std::endl;
-
-            return Triangle({vid, pt_list[i], pt_list[j], ball_center});
+            
+            tris.push_back({vid, pt_list[i], pt_list[j]}); 
+            return true;
+            
 
         }
     }
+    return false;
 }
 
 bool Pivoter::check_ball(const Eigen::MatrixXd &V, 
