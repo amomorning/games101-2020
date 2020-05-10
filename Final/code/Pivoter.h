@@ -17,17 +17,17 @@ struct Edge {
 class Pivoter
 {
 public:
-    const double ro = 0.007;
+    double ro = 0.01;
     std::vector<int> bucket[20][20][20];
     std::list<Edge> front;
-    int used[4000];
+    int used[2600];
 
     Pivoter();
     ~Pivoter(){};
 
     bool check_front(int x);
     void bucketsort(const Eigen::MatrixXd &V);
-    bool find_seed_triangle(std::vector<Eigen::Vector3i> &tris, const Eigen::MatrixXd &V, const Eigen::MatrixXd &N, int seed);    
+    int find_seed_triangle(std::vector<Eigen::Vector3i> &tris, const Eigen::MatrixXd &V, const Eigen::MatrixXd &N, int seed);    
     void find_next_triangle(std::vector<Eigen::Vector3i> &tris, const Eigen::MatrixXd &V, const Eigen::MatrixXd &N);
     Eigen::Vector3i get_position(const Eigen::Vector3d pt);
     std::vector<int> pick_neighbors(const Eigen::Vector3d &pt);

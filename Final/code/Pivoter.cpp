@@ -117,6 +117,8 @@ void Pivoter::find_next_triangle(std::vector<Eigen::Vector3i> &tris, const Eigen
             delete_edge_from_front(e.v, vid);
             delete_edge_from_front(vid, e.u);
             delete_edge_from_front(vid, e.v);
+            delete_edge_from_front(e.u, e.v);
+            delete_edge_from_front(e.v, e.u);
         }
     }
 
@@ -131,12 +133,11 @@ bool Pivoter::delete_edge_from_front(int u, int v) {
     }
 }
 
-bool Pivoter::find_seed_triangle(std::vector<Eigen::Vector3i> &tris, const Eigen::MatrixXd &V, const Eigen::MatrixXd &N, int seed) {
+int Pivoter::find_seed_triangle(std::vector<Eigen::Vector3i> &tris, const Eigen::MatrixXd &V, const Eigen::MatrixXd &N, int seed) {
 
     srand(seed);
-    int vid = rand()%3000 + 1;
-    std::cout << vid << std::endl;
-    if(used[vid]) return true;
+    int vid = rand()%2502 + 1;
+    if(used[vid]) return -1;
     used[vid] = true;
 
     auto v = V.col(vid);
@@ -151,7 +152,7 @@ bool Pivoter::find_seed_triangle(std::vector<Eigen::Vector3i> &tris, const Eigen
             normal.normalize();
 
             double theta = acos(vn.dot(normal));
-            if(theta > 0.2) continue;
+            if(theta > 0.5) continue;
             
             auto circle = get_circle(v, a+v, b+v);
             if(circle.second > ro) continue;
@@ -202,10 +203,15 @@ bool Pivoter::check_ball(const Eigen::MatrixXd &V,
 void Pivoter::bucketsort(const Eigen::MatrixXd &V) {
     // bunny with 15x15x15 with max grid 14 points (2, 0, 6);
     int mx = 0;
+    Eigen::Vector3i tmp;
     for (int i = 0; i < V.cols(); ++ i) {
         auto ps = get_position(V.col(i));
+        // if(tmp[0] > ps[0] || tmp[1] > ps[1] || tmp[2] > ps[2])
+            // tmp = ps;
         bucket[ps[0]][ps[1]][ps[2]].push_back(i); 
     }
+    // std::cout << tmp << std::endl;
+    
 }
 
 std::pair<Eigen::Vector3d, double> Pivoter::get_circle(const Eigen::Vector3d &p0, 

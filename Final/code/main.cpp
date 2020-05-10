@@ -76,32 +76,35 @@ int main(int argc, const char** argv) {
         V = VV;
         common::save_obj("./bunny.obj", V, F);
     } else {
+        puts("ok");
         common::read_matrix_binary_from_file("../data/V", V);
         common::read_matrix_binary_from_file("../data/N", N);
     }
 
     move_positives(V);
 
-
+    
+    int seed = 816;
     Pivoter pvt;
     pvt.bucketsort(V);
-
-    int seed = 233;
+        tris.clear();
     srand(seed);
     int cnt = 0;
     while(true) {
-        puts("ok");
         int randseed = rand()%10000;
-        if(!pvt.find_seed_triangle(tris, V, N, randseed)) break;
+        int op = pvt.find_seed_triangle(tris, V, N, randseed);
+        if(op == -1) continue;
+        if(op == 0) continue;
 
         while(pvt.front.size() > 0) { 
             pvt.find_next_triangle(tris, V, N);
         }
 
         std::cout << "Part " << cnt ++ << std::endl;
-        std::cout << tris.size() << std::endl;
+        // std::cout << tris.size() << std::endl;
+        pvt.ro += 0.001;
+        if(cnt >= 3) break;
         // break;
-        if(cnt > 9) break;
     }
     Eigen::Matrix3Xi F;
     F.resize(3, tris.size());
@@ -113,6 +116,9 @@ int main(int argc, const char** argv) {
     }
 
     common::save_obj("result.obj", V, F);
+    std::cout << "-----------------------seed " << seed << "--------------------" << std::endl;
     
+    std::cout << tris.size() << std::endl;
+
     return 0;
 }
